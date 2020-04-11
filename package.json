@@ -1,0 +1,19 @@
+{
+  "name": "weatherchannel",
+  "version": "1.0.0",
+  "description": "connects to APIs to get weather and places of interest",
+  "main": "index.js",
+  "scripts": {
+    "start": "http-server /Users/cec/aa/weatherChannel"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kaussandeep/weatherChannel.git"
+  },
+  "author": "SandeepK",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kaussandeep/weatherChannel/issues"
+  },
+  "homepage": "https://github.com/kaussandeep/weatherChannel#readme"
+}
