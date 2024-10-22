@@ -1,2 +1,2 @@
-console.log("this is sample Javascrispt");   
+console.log("this is sample Jadsdsvascrispt");   
 console.log("test");
