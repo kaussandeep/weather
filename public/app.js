@@ -1,2 +1,2 @@
-console.log("this is sample Jadsdsvascrispt");   
+console.log("this is sample Jdsadsdsvascrispt");   
 console.log("test");
