@@ -1,0 +1,81 @@
+name: Auto Generate Unit Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '**.js'
+      - '!**.test.js'
+      - '!node_modules/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check for files without tests
+        id: check_tests
+        run: |
+          FILES_WITHOUT_TESTS=""
+          for file in $(git diff --name-only origin/${{ github.event.pull_request.base.ref }} HEAD | grep '\.js$' | grep -v '\.test\.js$' | grep -v 'node_modules'); do
+            test_file="${file%.js}.test.js"
+            if [ ! -f "$test_file" ]; then
+              FILES_WITHOUT_TESTS="$FILES_WITHOUT_TESTS $file"
+            fi
+          done
+          
+          if [ -n "$FILES_WITHOUT_TESTS" ]; then
+            echo "needs_tests=true" >> $GITHUB_OUTPUT
+            echo "files=$FILES_WITHOUT_TESTS" >> $GITHUB_OUTPUT
+          else
+            echo "needs_tests=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate unit tests
+        if: steps.check_tests.outputs.needs_tests == 'true'
+        run: |
+          node .github/scripts/generate-tests.js "${{ steps.check_tests.outputs.files }}"
+
+      - name: Run generated tests
+        if: steps.check_tests.outputs.needs_tests == 'true'
+        run: npm test
+        continue-on-error: true
+
+      - name: Commit and push tests
+        if: steps.check_tests.outputs.needs_tests == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add *.test.js **/*.test.js
+          git commit -m "🤖 Auto-generated unit tests for modified files" || exit 0
+          git push
+
+      - name: Comment on PR
+        if: steps.check_tests.outputs.needs_tests == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🤖 **Unit Tests Auto-Generated**\n\n✅ Unit tests have been automatically generated and added to this PR.\n\nPlease review the generated tests and make any necessary adjustments.\n\n**Files processed:**\n```\n${{ steps.check_tests.outputs.files }}\n```\n\n_This is an automated action._'
+            })
