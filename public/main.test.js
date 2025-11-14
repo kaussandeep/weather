@@ -263,5 +263,18 @@ describe("API Functions", () => {
       cityInput.value = "";
       expect(cityInput.value).toBe("");
     });
+
+    test("handles special characters in city names", () => {
+      const cityInput = document.getElementById("city");
+      cityInput.value = "São Paulo";
+      expect(cityInput.value).toBe("São Paulo");
+    });
+
+    test("trims whitespace from city input", () => {
+      const cityInput = document.getElementById("city");
+      cityInput.value = "  Tokyo  ";
+      const trimmedValue = cityInput.value.trim();
+      expect(trimmedValue).toBe("Tokyo");
+    });
   });
 });

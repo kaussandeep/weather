@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather & Venues Test Page</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Weather & Venue Explorer</h1>
+    <p>Discover weather and popular venues in any city</p>
+  </header>
+
+  <main>
+    <section>
+      <div>
+        <input type="text" placeholder="Enter a city name..." value="">
+        <button type="submit">Search</button>
+        <button type="reset">Clear</button>
+      </div>
+    </section>
+
+    <div style="visibility: hidden;">
+      <section>
+        <h2>Weather Information</h2>
+        <div class="weather-card">
+          <p>Temperature: <span>--</span></p>
+          <p>Condition: <span>--</span></p>
+          <img src="" alt="Weather icon">
+        </div>
+      </section>
+
+      <section>
+        <h2>Popular Venues</h2>
+        <div>
+          <div class="venue-card">
+            <h3>Venue Name</h3>
+            <p>Address</p>
+            <button>View Details</button>
+          </div>
+          <div class="venue-card">
+            <h3>Venue Name</h3>
+            <p>Address</p>
+            <button>View Details</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <aside>
+      <h3>Recent Searches</h3>
+      <ul>
+        <li><a href="#">New York</a></li>
+        <li><a href="#">London</a></li>
+        <li><a href="#">Tokyo</a></li>
+      </ul>
+    </aside>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Weather Explorer. Powered by OpenWeather & Foursquare APIs.</p>
+    <nav>
+      <a href="#">About</a>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+    </nav>
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="helpers.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
