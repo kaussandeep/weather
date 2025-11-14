@@ -16,3 +16,11 @@ const createWeatherHTML = (currentDay) => {
 }
 
 const kelvinToFahrenheit = k => ((k - 273.15) * 9 / 5 + 32).toFixed(0);
+
+const kelvinToCelsius = k => (k - 273.15).toFixed(1);
+
+const getWindDirection = (degrees) => {
+  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const index = Math.round(degrees / 45) % 8;
+  return directions[index];
+};

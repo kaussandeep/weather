@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Components - Test Page</title>
+</head>
+<body>
+  <!-- These elements don't have IDs - should trigger auto-add-ids action! -->
+  
+  <nav>
+    <ul>
+      <li><a href="#home">Home</a></li>
+      <li><a href="#weather">Weather</a></li>
+      <li><a href="#venues">Venues</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section>
+      <h2>Search for Weather</h2>
+      <form>
+        <div>
+          <label>City Name:</label>
+          <input type="text" placeholder="Enter city name" required>
+        </div>
+        <div>
+          <label>Country Code (optional):</label>
+          <input type="text" placeholder="US, GB, etc." maxlength="2">
+        </div>
+        <div>
+          <button type="submit">Get Weather</button>
+          <button type="reset">Clear Form</button>
+        </div>
+      </form>
+    </section>
+
+    <section>
+      <h2>Weather Results</h2>
+      <article>
+        <h3>Current Temperature</h3>
+        <p>Loading...</p>
+        <button>Refresh</button>
+      </article>
+      
+      <article>
+        <h3>Forecast</h3>
+        <div>
+          <div>
+            <span>Monday</span>
+            <span>72°F</span>
+            <button>Details</button>
+          </div>
+          <div>
+            <span>Tuesday</span>
+            <span>68°F</span>
+            <button>Details</button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <aside>
+      <h3>Quick Actions</h3>
+      <button>Save Location</button>
+      <button>Share Weather</button>
+      <button>Print Report</button>
+      <select>
+        <option>Celsius</option>
+        <option>Fahrenheit</option>
+        <option>Kelvin</option>
+      </select>
+    </aside>
+
+    <section>
+      <h2>Nearby Venues</h2>
+      <div>
+        <article>
+          <h4>Restaurant Name</h4>
+          <p>123 Main St</p>
+          <a href="#">View on Map</a>
+          <button>Get Directions</button>
+        </article>
+        <article>
+          <h4>Coffee Shop</h4>
+          <p>456 Oak Ave</p>
+          <a href="#">View on Map</a>
+          <button>Get Directions</button>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>User Preferences</h2>
+      <form>
+        <fieldset>
+          <legend>Temperature Unit</legend>
+          <label><input type="radio" name="unit" value="celsius"> Celsius</label>
+          <label><input type="radio" name="unit" value="fahrenheit"> Fahrenheit</label>
+        </fieldset>
+        
+        <fieldset>
+          <legend>Notifications</legend>
+          <label><input type="checkbox" name="alerts"> Weather Alerts</label>
+          <label><input type="checkbox" name="updates"> Daily Updates</label>
+        </fieldset>
+        
+        <textarea placeholder="Additional notes..." rows="4"></textarea>
+        
+        <button type="submit">Save Preferences</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Weather App</p>
+    <div>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Contact Us</a>
+    </div>
+  </footer>
+
+</body>
+</html>
