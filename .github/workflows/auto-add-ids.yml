@@ -23,6 +23,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -31,12 +32,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install cheerio uuid
+          echo "No additional dependencies needed"
 
       - name: Check for UI components without IDs
         id: check_ids
         run: |
-          FILES_MODIFIED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} HEAD | grep -E '\.(html|jsx|tsx|vue)$' | grep -v 'node_modules' || echo "")
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          FILES_MODIFIED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD | grep -E '\.(html|jsx|tsx|vue)$' | grep -v 'node_modules' || echo "")
+          
+          echo "Modified files: $FILES_MODIFIED"
           
           if [ -n "$FILES_MODIFIED" ]; then
             echo "needs_ids=true" >> $GITHUB_OUTPUT

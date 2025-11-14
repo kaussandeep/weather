@@ -22,6 +22,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,13 +35,16 @@ jobs:
       - name: Check for files without tests
         id: check_tests
         run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
           FILES_WITHOUT_TESTS=""
-          for file in $(git diff --name-only origin/${{ github.event.pull_request.base.ref }} HEAD | grep '\.js$' | grep -v '\.test\.js$' | grep -v 'node_modules'); do
+          for file in $(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD | grep '\.js$' | grep -v '\.test\.js$' | grep -v 'node_modules'); do
             test_file="${file%.js}.test.js"
             if [ ! -f "$test_file" ]; then
               FILES_WITHOUT_TESTS="$FILES_WITHOUT_TESTS $file"
             fi
           done
+          
+          echo "Files without tests: $FILES_WITHOUT_TESTS"
           
           if [ -n "$FILES_WITHOUT_TESTS" ]; then
             echo "needs_tests=true" >> $GITHUB_OUTPUT
