@@ -11,70 +11,74 @@
     <div>
       <h1>About Sandeep Tours</h1>
       <p>Your trusted travel companion since 2025</p>
+      <button id="button-1" data-testid="button-1">Get Started</button>
+      <button id="button-2" data-testid="button-2">Watch Video</button>
     </div>
-    <nav>
+    <nav id="nav-1" data-testid="nav-1">
       <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/weather">Weather</a></li>
-        <li><a href="/search">Search</a></li>
-        <li><a href="/about">About</a></li>
-        <li><a href="/contact">Contact</a></li>
+        <li><a id="link-1" data-testid="link-1" href="/">Home</a></li>
+        <li><a id="link-2" data-testid="link-2" href="/weather">Weather</a></li>
+        <li><a id="link-3" data-testid="link-3" href="/search">Search</a></li>
+        <li><a id="link-4" data-testid="link-4" href="/about">About</a></li>
+        <li><a id="link-5" data-testid="link-5" href="/contact">Contact</a></li>
       </ul>
+      <button id="button-3" data-testid="button-3">Sign In</button>
+      <button id="button-4" data-testid="button-4">Register</button>
     </nav>
   </header>
 
   <main>
-    <section>
+    <section id="section-1" data-testid="section-1">
       <h2>Our Story</h2>
-      <article>
+      <article id="article-1" data-testid="article-1">
         <h3>Who We Are</h3>
         <p>We help travelers explore the world with confidence by providing real-time weather and venue information.</p>
-        <button>Learn More</button>
+        <button id="button-5" data-testid="button-5">Learn More</button>
       </article>
       
-      <article>
+      <article id="article-2" data-testid="article-2">
         <h3>Our Mission</h3>
         <p>To make travel planning easier and more enjoyable for everyone.</p>
-        <button>Read More</button>
+        <button id="button-6" data-testid="button-6">Read More</button>
       </article>
     </section>
 
-    <section>
+    <section id="section-2" data-testid="section-2">
       <h2>What We Offer</h2>
       <div>
         <div>
           <h4>Weather Forecasts</h4>
           <p>Accurate weather data for any location</p>
-          <a href="#">Explore</a>
+          <a id="link-6" data-testid="link-6" href="#">Explore</a>
         </div>
         <div>
           <h4>Venue Discovery</h4>
           <p>Find popular attractions and restaurants</p>
-          <a href="#">Discover</a>
+          <a id="link-7" data-testid="link-7" href="#">Discover</a>
         </div>
         <div>
           <h4>Travel Tips</h4>
           <p>Expert advice for your journey</p>
-          <a href="#">Read Tips</a>
+          <a id="link-8" data-testid="link-8" href="#">Read Tips</a>
         </div>
       </div>
     </section>
 
-    <section>
+    <section id="section-3" data-testid="section-3">
       <h2>Get Started</h2>
-      <form>
+      <form id="form-1" data-testid="form-1">
         <h3>Subscribe to Our Newsletter</h3>
         <div>
           <label>Name</label>
-          <input type="text" placeholder="Your name" required>
+          <input id="input-1" data-testid="input-1" type="text" placeholder="Your name" required>
         </div>
         <div>
           <label>Email</label>
-          <input type="email" placeholder="Your email" required>
+          <input id="input-2" data-testid="input-2" type="email" placeholder="Your email" required>
         </div>
         <div>
           <label>Interests</label>
-          <select>
+          <select id="select-1" data-testid="select-1">
             <option value="">Choose your interests</option>
             <option value="weather">Weather Updates</option>
             <option value="travel">Travel Tips</option>
@@ -82,58 +86,95 @@
           </select>
         </div>
         <div>
-          <input type="checkbox" value="terms">
+          <input id="input-3" data-testid="input-3" type="checkbox" value="terms">
           <label>I agree to the terms and conditions</label>
         </div>
-        <button type="submit">Subscribe</button>
-        <button type="reset">Clear Form</button>
+        <button id="button-7" data-testid="button-7" type="submit">Subscribe</button>
+        <button id="button-8" data-testid="button-8" type="reset">Clear Form</button>
       </form>
     </section>
 
-    <aside>
+    <aside id="aside-1" data-testid="aside-1">
       <h3>Quick Links</h3>
-      <nav>
-        <a href="#">FAQ</a>
-        <a href="#">Support</a>
-        <a href="#">Blog</a>
-        <a href="#">Careers</a>
+      <nav id="nav-2" data-testid="nav-2">
+        <a id="link-9" data-testid="link-9" href="#">FAQ</a>
+        <a id="link-10" data-testid="link-10" href="#">Support</a>
+        <a id="link-11" data-testid="link-11" href="#">Blog</a>
+        <a id="link-12" data-testid="link-12" href="#">Careers</a>
       </nav>
       <div>
         <h4>Connect With Us</h4>
-        <button>Facebook</button>
-        <button>Twitter</button>
-        <button>Instagram</button>
+        <button id="button-9" data-testid="button-9">Facebook</button>
+        <button id="button-10" data-testid="button-10">Twitter</button>
+        <button id="button-11" data-testid="button-11">Instagram</button>
+        <button id="button-12" data-testid="button-12">LinkedIn</button>
+        <button id="button-13" data-testid="button-13">YouTube</button>
       </div>
+      <form id="form-2" data-testid="form-2">
+        <h4>Newsletter Signup</h4>
+        <input id="input-4" data-testid="input-4" type="email" placeholder="Your email">
+        <select id="select-2" data-testid="select-2">
+          <option>Daily</option>
+          <option>Weekly</option>
+          <option>Monthly</option>
+        </select>
+        <button id="button-14" data-testid="button-14" type="submit">Subscribe</button>
+      </form>
     </aside>
 
-    <section>
+    <section id="section-4" data-testid="section-4">
       <h2>Contact Us</h2>
-      <form>
+      <form id="form-3" data-testid="form-3">
         <fieldset>
           <legend>Send us a message</legend>
           <div>
             <label>Your Name</label>
-            <input type="text" required>
+            <input id="input-5" data-testid="input-5" type="text" required>
           </div>
           <div>
             <label>Email Address</label>
-            <input type="email" required>
+            <input id="input-6" data-testid="input-6" type="email" required>
+          </div>
+          <div>
+            <label>Phone Number</label>
+            <input id="input-7" data-testid="input-7" type="tel" placeholder="+1 (555) 000-0000">
           </div>
           <div>
             <label>Subject</label>
-            <select>
+            <select id="select-3" data-testid="select-3">
               <option>General Inquiry</option>
               <option>Technical Support</option>
               <option>Partnership</option>
+              <option>Feedback</option>
+            </select>
+          </div>
+          <div>
+            <label>Priority</label>
+            <select id="select-4" data-testid="select-4">
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
             </select>
           </div>
           <div>
             <label>Message</label>
-            <textarea rows="5" placeholder="Type your message here..."></textarea>
+            <textarea id="textarea-1" data-testid="textarea-1" rows="5" placeholder="Type your message here..."></textarea>
           </div>
-          <button type="submit">Send Message</button>
+          <div>
+            <input id="input-8" data-testid="input-8" type="checkbox">
+            <label>Send me a copy</label>
+          </div>
+          <button id="button-15" data-testid="button-15" type="submit">Send Message</button>
+          <button id="button-16" data-testid="button-16" type="button">Save Draft</button>
         </fieldset>
       </form>
+      
+      <div>
+        <h3>Other Contact Methods</h3>
+        <button id="button-17" data-testid="button-17">Call Us</button>
+        <button id="button-18" data-testid="button-18">Live Chat</button>
+        <button id="button-19" data-testid="button-19">Schedule Meeting</button>
+      </div>
     </section>
   </main>
 
@@ -142,16 +183,16 @@
       <h4>Sandeep Tours</h4>
       <p>Making travel planning easier</p>
     </div>
-    <nav>
+    <nav id="nav-3" data-testid="nav-3">
       <h4>Quick Links</h4>
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="#">Cookie Policy</a>
-      <a href="#">Sitemap</a>
+      <a id="link-13" data-testid="link-13" href="#">Privacy Policy</a>
+      <a id="link-14" data-testid="link-14" href="#">Terms of Service</a>
+      <a id="link-15" data-testid="link-15" href="#">Cookie Policy</a>
+      <a id="link-16" data-testid="link-16" href="#">Sitemap</a>
     </nav>
     <div>
       <p>&copy; 2025 Sandeep Tours. All rights reserved.</p>
-      <button>Back to Top</button>
+      <button id="button-20" data-testid="button-20">Back to Top</button>
     </div>
   </footer>
 </body>
