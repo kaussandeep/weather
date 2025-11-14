@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Weather - Sandeep Tours</title>
+</head>
+<body>
+  <header>
+    <h1>Weather Search</h1>
+    <nav>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/search">Search</a></li>
+        <li><a href="/favorites">Favorites</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h2>Find Your Destination</h2>
+      <form>
+        <fieldset>
+          <legend>Search Options</legend>
+          
+          <div>
+            <label>City Name</label>
+            <input type="text" placeholder="Enter city name" required>
+          </div>
+          
+          <div>
+            <label>Country</label>
+            <select>
+              <option value="">Select country</option>
+              <option value="us">United States</option>
+              <option value="uk">United Kingdom</option>
+              <option value="fr">France</option>
+              <option value="jp">Japan</option>
+            </select>
+          </div>
+          
+          <div>
+            <label>Date Range</label>
+            <input type="date">
+            <span>to</span>
+            <input type="date">
+          </div>
+          
+          <div>
+            <input type="checkbox" value="weather">
+            <label>Include weather forecast</label>
+          </div>
+          
+          <div>
+            <input type="checkbox" value="venues">
+            <label>Show nearby attractions</label>
+          </div>
+          
+          <button type="submit">Search</button>
+          <button type="reset">Clear All</button>
+        </fieldset>
+      </form>
+    </section>
+
+    <section>
+      <h2>Recent Searches</h2>
+      <article>
+        <h3>New York, USA</h3>
+        <p>Searched 2 days ago</p>
+        <button>View Again</button>
+        <button>Remove</button>
+      </article>
+      
+      <article>
+        <h3>London, UK</h3>
+        <p>Searched 5 days ago</p>
+        <button>View Again</button>
+        <button>Remove</button>
+      </article>
+    </section>
+
+    <aside>
+      <h3>Popular Destinations</h3>
+      <div>
+        <a href="#">Paris</a>
+        <a href="#">Tokyo</a>
+        <a href="#">Sydney</a>
+        <a href="#">Dubai</a>
+      </div>
+      
+      <h3>Quick Actions</h3>
+      <button>Save Search</button>
+      <button>Share Results</button>
+      <button>Export Data</button>
+    </aside>
+  </main>
+
+  <footer>
+    <div>
+      <h4>Contact Us</h4>
+      <form>
+        <input type="email" placeholder="Your email">
+        <textarea placeholder="Your message" rows="3"></textarea>
+        <button type="submit">Send</button>
+      </form>
+    </div>
+    
+    <div>
+      <h4>Follow Us</h4>
+      <a href="#">Facebook</a>
+      <a href="#">Twitter</a>
+      <a href="#">Instagram</a>
+    </div>
+    
+    <div>
+      <p>&copy; 2025 Sandeep Tours</p>
+      <nav>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Support</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
