@@ -1,0 +1,81 @@
+name: Auto Add UI Component IDs
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '**.html'
+      - '**.jsx'
+      - '**.tsx'
+      - '**.vue'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  add-ids:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm install cheerio uuid
+
+      - name: Check for UI components without IDs
+        id: check_ids
+        run: |
+          FILES_MODIFIED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} HEAD | grep -E '\.(html|jsx|tsx|vue)$' | grep -v 'node_modules' || echo "")
+          
+          if [ -n "$FILES_MODIFIED" ]; then
+            echo "needs_ids=true" >> $GITHUB_OUTPUT
+            echo "files=$FILES_MODIFIED" >> $GITHUB_OUTPUT
+          else
+            echo "needs_ids=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Add unique IDs to UI components
+        if: steps.check_ids.outputs.needs_ids == 'true'
+        run: |
+          node .github/scripts/add-ui-ids.js "${{ steps.check_ids.outputs.files }}"
+
+      - name: Commit and push changes
+        if: steps.check_ids.outputs.needs_ids == 'true'
+        id: commit
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            git commit -m "🤖 Auto-added unique IDs to UI components"
+            git push
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment on PR
+        if: steps.check_ids.outputs.needs_ids == 'true' && steps.commit.outputs.has_changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = '${{ steps.check_ids.outputs.files }}'.split(' ').filter(f => f);
+            const fileList = files.map(f => `- ${f}`).join('\n');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🤖 **UI Component IDs Auto-Added**\n\n✅ Unique identifiers have been automatically added to UI components in this PR.\n\n**Modified files:**\n${fileList}\n\n**What was added:**\n- Unique \`id\` attributes for elements without them\n- Data attributes (\`data-testid\`) for testing purposes\n- Follows naming convention: \`component-name-uuid\`\n\nPlease review the changes and adjust IDs if needed for better semantic naming.\n\n_This is an automated action._`
+            })
