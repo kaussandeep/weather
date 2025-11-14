@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact - Sandeep Tours</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Contact Us</h1>
+    <nav id="nav-1" data-testid="nav-1">
+      <a id="link-1" data-testid="link-1" href="/">Home</a>
+      <a id="link-2" data-testid="link-2" href="/weather">Weather</a>
+      <a id="link-3" data-testid="link-3" href="/about">About</a>
+      <a id="link-4" data-testid="link-4" href="/contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="section-1" data-testid="section-1">
+      <h2>Get In Touch</h2>
+      <p>We'd love to hear from you!</p>
+      
+      <form id="form-1" data-testid="form-1">
+        <div>
+          <label>Full Name</label>
+          <input id="input-1" data-testid="input-1" type="text" placeholder="John Doe" required>
+        </div>
+        
+        <div>
+          <label>Email</label>
+          <input id="input-2" data-testid="input-2" type="email" placeholder="john@example.com" required>
+        </div>
+        
+        <div>
+          <label>Phone</label>
+          <input id="input-3" data-testid="input-3" type="tel" placeholder="+1 (555) 123-4567">
+        </div>
+        
+        <div>
+          <label>Subject</label>
+          <select id="select-1" data-testid="select-1">
+            <option value="">Choose a subject</option>
+            <option value="general">General Inquiry</option>
+            <option value="support">Technical Support</option>
+            <option value="feedback">Feedback</option>
+            <option value="partnership">Partnership</option>
+          </select>
+        </div>
+        
+        <div>
+          <label>Message</label>
+          <textarea id="textarea-1" data-testid="textarea-1" rows="6" placeholder="Your message here..." required></textarea>
+        </div>
+        
+        <div>
+          <input id="input-4" data-testid="input-4" type="checkbox" value="newsletter">
+          <label>Subscribe to newsletter</label>
+        </div>
+        
+        <div>
+          <button id="button-1" data-testid="button-1" type="submit">Send Message</button>
+          <button id="button-2" data-testid="button-2" type="reset">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="section-2" data-testid="section-2">
+      <h2>Other Ways to Reach Us</h2>
+      
+      <article id="article-1" data-testid="article-1">
+        <h3>Email</h3>
+        <p>info@sandeeptours.com</p>
+        <button id="button-3" data-testid="button-3">Send Email</button>
+      </article>
+      
+      <article id="article-2" data-testid="article-2">
+        <h3>Phone</h3>
+        <p>+1 (555) 987-6543</p>
+        <button id="button-4" data-testid="button-4">Call Now</button>
+      </article>
+      
+      <article id="article-3" data-testid="article-3">
+        <h3>Live Chat</h3>
+        <p>Available Mon-Fri, 9am-5pm EST</p>
+        <button id="button-5" data-testid="button-5">Start Chat</button>
+      </article>
+    </section>
+
+    <section id="section-3" data-testid="section-3">
+      <h2>Frequently Asked Questions</h2>
+      <div>
+        <details>
+          <summary>How do I search for weather?</summary>
+          <p>Simply enter a city name in the search box.</p>
+        </details>
+        <details>
+          <summary>Is the service free?</summary>
+          <p>Yes, our basic features are completely free.</p>
+        </details>
+        <details>
+          <summary>Can I save my favorite locations?</summary>
+          <p>Yes, sign up for a free account to save locations.</p>
+        </details>
+      </div>
+      <button id="button-6" data-testid="button-6">View All FAQs</button>
+    </section>
+
+    <aside id="aside-1" data-testid="aside-1">
+      <h3>Need Help?</h3>
+      <p>Check out our help center</p>
+      <nav id="nav-2" data-testid="nav-2">
+        <a id="link-5" data-testid="link-5" href="#">Getting Started</a>
+        <a id="link-6" data-testid="link-6" href="#">User Guide</a>
+        <a id="link-7" data-testid="link-7" href="#">Troubleshooting</a>
+        <a id="link-8" data-testid="link-8" href="#">API Documentation</a>
+      </nav>
+      <button id="button-7" data-testid="button-7">Search Help</button>
+    </aside>
+  </main>
+
+  <footer>
+    <div>
+      <h4>Follow Us</h4>
+      <nav id="nav-3" data-testid="nav-3">
+        <a id="link-9" data-testid="link-9" href="#">Facebook</a>
+        <a id="link-10" data-testid="link-10" href="#">Twitter</a>
+        <a id="link-11" data-testid="link-11" href="#">Instagram</a>
+        <a id="link-12" data-testid="link-12" href="#">LinkedIn</a>
+      </nav>
+    </div>
+    
+    <div>
+      <h4>Quick Links</h4>
+      <nav id="nav-4" data-testid="nav-4">
+        <a id="link-13" data-testid="link-13" href="#">Privacy Policy</a>
+        <a id="link-14" data-testid="link-14" href="#">Terms of Service</a>
+        <a id="link-15" data-testid="link-15" href="#">Sitemap</a>
+      </nav>
+    </div>
+    
+    <div>
+      <form id="form-2" data-testid="form-2">
+        <h4>Stay Updated</h4>
+        <input id="input-5" data-testid="input-5" type="email" placeholder="Enter your email">
+        <button id="button-8" data-testid="button-8" type="submit">Subscribe</button>
+      </form>
+    </div>
+  </footer>
+</body>
+</html>

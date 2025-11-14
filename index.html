@@ -11,50 +11,69 @@
   <body>
     <header>
       <img class="logo" src="https://s3.amazonaws.com/codecademy-content/courses/intermediate-javascript-requests/wanderlust/logo.svg" alt="logo" />
-      <nav>
-        <a href="#">Home</a>
-        <a href="#">Destinations</a>
-        <a href="#">About</a>
-        <a href="#">Contact</a>
-        <button>Sign In</button>
-        <button>Sign Up</button>
+      <nav id="nav-1" data-testid="nav-1">
+        <a id="link-1" data-testid="link-1" href="#">Home</a>
+        <a id="link-2" data-testid="link-2" href="#">Destinations</a>
+        <a id="link-3" data-testid="link-3" href="#">About</a>
+        <a id="link-4" data-testid="link-4" href="#">Contact</a>
+        <button id="button-1" data-testid="button-1">Sign In</button>
+        <button id="button-2" data-testid="button-2">Sign Up</button>
       </nav>
     </header>
     <main>
       <h1>Sandeep Tours: Where are you going ?</h1>
-      <form autocomplete="off">
+      <form id="form-1" data-testid="form-1" autocomplete="off">
         <input type="text" id="city">
         <button id="button" type="submit">Let's go</button>
-        <button type="reset">Clear</button>
-        <input type="checkbox">
+        <button id="button-3" data-testid="button-3" type="reset">Clear</button>
+        <input id="input-1" data-testid="input-1" type="checkbox">
         <label>Remember my location</label>
       </form>
       
-      <section>
+      <section id="section-1" data-testid="section-1">
         <h3>Popular Searches</h3>
-        <button>New York</button>
-        <button>London</button>
-        <button>Tokyo</button>
-        <button>Paris</button>
-        <button>Dubai</button>
+        <button id="button-4" data-testid="button-4">New York</button>
+        <button id="button-5" data-testid="button-5">London</button>
+        <button id="button-6" data-testid="button-6">Tokyo</button>
+        <button id="button-7" data-testid="button-7">Paris</button>
+        <button id="button-8" data-testid="button-8">Dubai</button>
       </section>
       
-      <section>
+      <section id="section-2" data-testid="section-2">
         <h2>Quick Search</h2>
         <div>
-          <button>New York</button>
-          <button>London</button>
-          <button>Paris</button>
-          <button>Tokyo</button>
+          <button id="button-9" data-testid="button-9">New York</button>
+          <button id="button-10" data-testid="button-10">London</button>
+          <button id="button-11" data-testid="button-11">Paris</button>
+          <button id="button-12" data-testid="button-12">Tokyo</button>
         </div>
       </section>
       
-      <aside>
+      <aside id="aside-1" data-testid="aside-1">
         <h3>Travel Tips</h3>
         <p>Check weather before you go!</p>
-        <button>Learn More</button>
-        <a href="#">View All Tips</a>
+        <button id="button-13" data-testid="button-13">Learn More</button>
+        <a id="link-5" data-testid="link-5" href="#">View All Tips</a>
       </aside>
+      
+      <section id="section-3" data-testid="section-3">
+        <h2>Explore More</h2>
+        <form id="form-2" data-testid="form-2">
+          <label>Find destinations by:</label>
+          <select id="select-1" data-testid="select-1">
+            <option>Climate</option>
+            <option>Season</option>
+            <option>Activity</option>
+          </select>
+          <input id="input-2" data-testid="input-2" type="search" placeholder="Search...">
+          <button id="button-14" data-testid="button-14" type="submit">Search</button>
+        </form>
+        <nav id="nav-2" data-testid="nav-2">
+          <a id="link-6" data-testid="link-6" href="#">Beach Destinations</a>
+          <a id="link-7" data-testid="link-7" href="#">Mountain Retreats</a>
+          <a id="link-8" data-testid="link-8" href="#">City Breaks</a>
+        </nav>
+      </section>
     </main>
     <div class="container">
     <div id="destination">
