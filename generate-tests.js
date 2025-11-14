@@ -1,141 +1,107 @@
 const fs = require('fs');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
 
-const files = process.argv[2].trim().split(' ').filter(f => f);
+const files = process.argv[2].trim().split(' ');
 
-// HTML elements that typically need IDs
-const interactiveElements = [
-  'button', 'input', 'select', 'textarea', 'a', 'form',
-  'div[class*="component"]', 'div[class*="widget"]',
-  'section', 'article', 'nav', 'header', 'footer'
-];
+function generateTestTemplate(filePath) {
+  const fileName = path.basename(filePath, '.js');
+  const testFileName = `${fileName}.test.js`;
+  const testFilePath = path.join(path.dirname(filePath), testFileName);
 
-function generateUniqueId(elementType, existingIds) {
-  let baseId = elementType.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-  let counter = 1;
-  let id = `${baseId}-${counter}`;
-  
-  while (existingIds.has(id)) {
-    counter++;
-    id = `${baseId}-${counter}`;
+  // Read the source file
+  let sourceCode = '';
+  try {
+    sourceCode = fs.readFileSync(filePath, 'utf8');
+  } catch (error) {
+    console.error(`Error reading file ${filePath}:`, error);
+    return;
   }
-  
-  return id;
-}
 
-function addIdsToHtml(filePath) {
-  console.log(`Processing HTML file: ${filePath}`);
+  // Extract function names
+  const functionPattern = /(?:const|let|var|function)\s+(\w+)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>/g;
+  const namedFunctionPattern = /(?:async\s+)?function\s+(\w+)\s*\([^)]*\)/g;
   
-  let content = fs.readFileSync(filePath, 'utf8');
-  const existingIds = new Set();
-  
-  // Extract existing IDs
-  const idPattern = /id=["']([^"']+)["']/g;
+  const functions = [];
   let match;
-  while ((match = idPattern.exec(content)) !== null) {
-    existingIds.add(match[1]);
+
+  while ((match = functionPattern.exec(sourceCode)) !== null) {
+    functions.push(match[1]);
   }
-  
-  // Add IDs to elements without them
-  let modified = false;
-  
-  // Process different element types
-  const patterns = [
-    { regex: /<button(?![^>]*\sid=)([^>]*)>/gi, type: 'button' },
-    { regex: /<input(?![^>]*\sid=)([^>]*)>/gi, type: 'input' },
-    { regex: /<select(?![^>]*\sid=)([^>]*)>/gi, type: 'select' },
-    { regex: /<textarea(?![^>]*\sid=)([^>]*)>/gi, type: 'textarea' },
-    { regex: /<a(?![^>]*\sid=)([^>]*)>/gi, type: 'link' },
-    { regex: /<form(?![^>]*\sid=)([^>]*)>/gi, type: 'form' },
-    { regex: /<div(?![^>]*\sid=)([^>]*class=["'][^"']*(?:component|widget|container)[^"']*["'][^>]*)>/gi, type: 'component' },
-  ];
-  
-  patterns.forEach(({ regex, type }) => {
-    content = content.replace(regex, (match, attributes) => {
-      const id = generateUniqueId(type, existingIds);
-      existingIds.add(id);
-      modified = true;
-      
-      // Add both id and data-testid
-      return match.replace('>', ` id="${id}" data-testid="${id}">`);
+
+  while ((match = namedFunctionPattern.exec(sourceCode)) !== null) {
+    functions.push(match[1]);
+  }
+
+  // Generate test content
+  const testContent = `/**
+ * Auto-generated unit tests for ${fileName}.js
+ * Generated on: ${new Date().toISOString()}
+ * 
+ * ⚠️ IMPORTANT: Please review and customize these tests
+ * These are template tests and may need adjustment based on actual implementation
+ */
+
+// Mock fetch for API calls
+global.fetch = jest.fn();
+
+// Mock jQuery if needed
+global.$ = jest.fn((selector) => ({
+  val: jest.fn(),
+  append: jest.fn(),
+  empty: jest.fn(),
+  click: jest.fn(),
+  css: jest.fn(),
+}));
+
+describe('${fileName}', () => {
+${functions.map(funcName => `
+  describe('${funcName}', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    test('should be defined', () => {
+      expect(${funcName}).toBeDefined();
+      expect(typeof ${funcName}).toBe('function');
+    });
+
+    test('should handle normal execution', async () => {
+      // TODO: Add specific test implementation
+      // This is a template - customize based on function behavior
+      const result = await ${funcName}();
+      expect(result).toBeDefined();
+    });
+
+    test('should handle errors gracefully', async () => {
+      // TODO: Add error handling test
+      // Mock error conditions and verify proper handling
     });
   });
+`).join('\n')}
   
-  if (modified) {
-    fs.writeFileSync(filePath, content);
-    console.log(`✅ Added IDs to: ${filePath}`);
-    return true;
-  } else {
-    console.log(`ℹ️  No changes needed for: ${filePath}`);
-    return false;
-  }
-}
-
-function addIdsToJsx(filePath) {
-  console.log(`Processing JSX/TSX file: ${filePath}`);
-  
-  let content = fs.readFileSync(filePath, 'utf8');
-  const existingIds = new Set();
-  
-  // Extract existing IDs
-  const idPattern = /(?:id|data-testid)=(?:["']([^"']+)["']|{["']([^"']+)["']})/g;
-  let match;
-  while ((match = idPattern.exec(content)) !== null) {
-    existingIds.add(match[1] || match[2]);
-  }
-  
-  let modified = false;
-  
-  // Add IDs to JSX elements without them
-  const jsxPattern = /<([A-Z][a-zA-Z0-9]*|button|input|select|textarea|a|form|div|section)(?![^>]*(?:id|data-testid)=)([^>\/]*)(\/?)/gi;
-  
-  content = content.replace(jsxPattern, (match, tag, attributes, selfClosing) => {
-    // Skip if already has an id or data-testid
-    if (/(?:id|data-testid)=/.test(attributes)) {
-      return match;
-    }
-    
-    const id = generateUniqueId(tag, existingIds);
-    existingIds.add(id);
-    modified = true;
-    
-    return `<${tag}${attributes} id="${id}" data-testid="${id}"${selfClosing}`;
+  // Integration tests
+  describe('Integration tests', () => {
+    test('should work together correctly', () => {
+      // TODO: Add integration tests if multiple functions interact
+    });
   });
-  
-  if (modified) {
-    fs.writeFileSync(filePath, content);
-    console.log(`✅ Added IDs to: ${filePath}`);
-    return true;
-  } else {
-    console.log(`ℹ️  No changes needed for: ${filePath}`);
-    return false;
+});
+`;
+
+  // Write test file
+  try {
+    fs.writeFileSync(testFilePath, testContent);
+    console.log(`✅ Generated test file: ${testFilePath}`);
+  } catch (error) {
+    console.error(`Error writing test file ${testFilePath}:`, error);
   }
 }
 
-// Process each file
-let totalModified = 0;
-
+// Generate tests for all files without tests
 files.forEach(file => {
-  if (!file || file.includes('node_modules')) return;
-  
-  const ext = path.extname(file);
-  let wasModified = false;
-  
-  try {
-    if (ext === '.html') {
-      wasModified = addIdsToHtml(file);
-    } else if (['.jsx', '.tsx'].includes(ext)) {
-      wasModified = addIdsToJsx(file);
-    } else if (ext === '.vue') {
-      // Basic Vue support - can be enhanced
-      wasModified = addIdsToHtml(file);
-    }
-    
-    if (wasModified) totalModified++;
-  } catch (error) {
-    console.error(`❌ Error processing ${file}:`, error.message);
+  if (file && !file.includes('node_modules')) {
+    generateTestTemplate(file);
   }
 });
 
-console.log(`\n✨ Processed ${files.length} files, modified ${totalModified} files`);
+console.log('\n✨ Test generation complete!');
