@@ -4,7 +4,10 @@
   "description": "connects to APIs to get weather and places of interest",
   "main": "index.js",
   "scripts": {
-    "start": "http-server /Users/cec/aa/weatherChannel"
+    "start": "http-server /Users/cec/aa/weatherChannel",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -15,5 +18,23 @@
   "bugs": {
     "url": "https://github.com/kaussandeep/weatherChannel/issues"
   },
-  "homepage": "https://github.com/kaussandeep/weatherChannel#readme"
+  "homepage": "https://github.com/kaussandeep/weatherChannel#readme",
+  "dependencies": {
+    "http-server": "^14.1.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "public/**/*.js",
+      "!public/app.js"
+    ]
+  }
 }
