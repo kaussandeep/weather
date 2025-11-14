@@ -40,11 +40,15 @@ jobs:
           git fetch origin ${{ github.event.pull_request.base.ref }}
           FILES_MODIFIED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD | grep -E '\.(html|jsx|tsx|vue)$' | grep -v 'node_modules' || echo "")
           
-          echo "Modified files: $FILES_MODIFIED"
+          echo "Modified files:"
+          echo "$FILES_MODIFIED"
           
           if [ -n "$FILES_MODIFIED" ]; then
             echo "needs_ids=true" >> $GITHUB_OUTPUT
-            echo "files=$FILES_MODIFIED" >> $GITHUB_OUTPUT
+            # Save files as multi-line string
+            echo "files<<EOF" >> $GITHUB_OUTPUT
+            echo "$FILES_MODIFIED" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
           else
             echo "needs_ids=false" >> $GITHUB_OUTPUT
           fi
@@ -52,7 +56,13 @@ jobs:
       - name: Add unique IDs to UI components
         if: steps.check_ids.outputs.needs_ids == 'true'
         run: |
-          node .github/scripts/add-ui-ids.js "${{ steps.check_ids.outputs.files }}"
+          # Process each file separately
+          echo "${{ steps.check_ids.outputs.files }}" | while IFS= read -r file; do
+            if [ -n "$file" ]; then
+              echo "Processing: $file"
+              node .github/scripts/add-ui-ids.js "$file"
+            fi
+          done
 
       - name: Commit and push changes
         if: steps.check_ids.outputs.needs_ids == 'true'
