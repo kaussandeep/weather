@@ -75,7 +75,7 @@ jobs:
 
             echo "Generating tests for $CLASS_FILE"
 
-            RESULT=$(curl -s -X POST "https://router.huggingface.co/hf-inference/models/bigcode/starcoder2-7b" \
+            RESULT=$(curl -s -X POST "https://router.huggingface.co/hf-inference/models/microsoft/Phi-3-mini-4k-instruct" \
                 -H "Authorization: Bearer $HF_TOKEN" \
                 -H "Content-Type: application/json" \
                 -d "{
@@ -83,10 +83,7 @@ jobs:
                     \"parameters\": { \"max_new_tokens\": 500, \"temperature\": 0.1 }
                 }")
             echo "$RESULT" \
-              | jq -r '.[0].generated_text // empty' \
-              | sed 's/```apex//g' \
-              | sed 's/```//g' \
-              > "$TEST_FILE"
+              | jq -r '.generated_text' > "$TEST_FILE"
 
             if [ -s "$TEST_FILE" ]; then
               echo "✅ Generated: $TEST_FILE"
