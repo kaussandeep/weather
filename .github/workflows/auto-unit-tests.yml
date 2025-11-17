@@ -1,109 +1,87 @@
-name: Generate Apex Tests
-
-on:
-  pull_request:
-    types: [opened, synchronize]
-
-jobs:
-  generate-tests:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-      pull-requests: write
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-
-      - name: Find changed Apex classes
-        id: find
-        run: |
-          git fetch origin ${{ github.base_ref }}
-          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} | grep "\.cls$" | grep -v "Test\.cls$" || true)
-          if [ -n "$CHANGED" ]; then
-            echo "changed<<EOF" >> $GITHUB_OUTPUT
-            echo "$CHANGED" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "changed=" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Skip if nothing changed
-        if: steps.find.outputs.changed == ''
-        run: echo "No Apex classes changed."
-
-      - name: Setup Node.js
-        if: steps.find.outputs.changed != ''
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Generate tests using GitHub Copilot
-        if: steps.find.outputs.changed != ''
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Install GitHub CLI if not available
-          which gh || (curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && \
-          sudo apt update && sudo apt install gh -y)
-          
-          echo "${{ steps.find.outputs.changed }}" | while IFS= read -r file; do
-            [ -z "$file" ] && continue
-            if [ -f "$file" ]; then
-              echo "Processing $file with GitHub Copilot..."
-              
-              # Read the file content
-              CONTENT=$(cat "$file")
-              TEST_FILE="${file%.cls}Test.cls"
-              
-              # Use GitHub API to call Copilot
-              PROMPT="You are an expert Salesforce Apex developer. Generate a comprehensive test class for the following Apex class with >90% code coverage. Include @isTest annotation, @TestSetup method, individual test methods for each public/global method, exception handling tests, and bulk operation tests. Follow Salesforce best practices. Return ONLY valid Apex code without markdown formatting:\n\n\`\`\`apex\n${CONTENT}\n\`\`\`"
-              
-              # Call GitHub Models API (using gpt-4o)
-              RESPONSE=$(curl -s -X POST https://models.inference.ai.azure.com/chat/completions \
-                -H "Content-Type: application/json" \
-                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                -d "{
-                  \"messages\": [
-                    {
-                      \"role\": \"system\",
-                      \"content\": \"You are an expert Salesforce Apex test generator.\"
-                    },
-                    {
-                      \"role\": \"user\",
-                      \"content\": $(echo "$PROMPT" | jq -Rs .)
-                    }
-                  ],
-                  \"model\": \"gpt-4o\",
-                  \"temperature\": 0.3,
-                  \"max_tokens\": 4000
-                }")
-              
-              # Extract the generated code
-              echo "$RESPONSE" | jq -r '.choices[0].message.content' | sed 's/```apex//g' | sed 's/```//g' > "$TEST_FILE"
-              
-              if [ -s "$TEST_FILE" ]; then
-                echo "✅ Successfully generated: $TEST_FILE"
-              else
-                echo "⚠️  Copilot API failed, using fallback template generator"
-                node .github/scripts/generate-apex-tests.js "$file"
-              fi
-            fi
-          done
-
-      - name: Commit generated tests
-        if: steps.find.outputs.changed != ''
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add .
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "Auto-generate Apex test classes"
-            git push origin HEAD:${{ github.head_ref }}
-          fi
+public with sharing class ContactManager {
+    
+    /**
+     * @description Creates a new contact with validation
+     * @param firstName First name of the contact
+     * @param lastName Last name of the contact
+     * @param email Email address of the contact
+     * @return Id of the created contact
+     */
+    public static Id createContact(String firstName, String lastName, String email) {
+        if (String.isBlank(lastName)) {
+            throw new AuraHandledException('Last name is required');
+        }
+        
+        if (String.isNotBlank(email) && !isValidEmail(email)) {
+            throw new AuraHandledException('Invalid email format');
+        }
+        
+        Contact newContact = new Contact(
+            FirstName = firstName,
+            LastName = lastName,
+            Email = email
+        );
+        
+        insert newContact;
+        return newContact.Id;
+    }
+    
+    /**
+     * @description Validates email format
+     * @param email Email address to validate
+     * @return Boolean indicating if email is valid
+     */
+    private static Boolean isValidEmail(String email) {
+        String emailRegex = '^[a-zA-Z0-9._|\\\\%#~`=?&/$^*!}{+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}$';
+        Pattern pattern = Pattern.compile(emailRegex);
+        Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
+    }
+    
+    /**
+     * @description Updates contact email addresses in bulk
+     * @param contactIds List of contact IDs to update
+     * @param newEmail New email address to set
+     * @return Number of successfully updated contacts
+     */
+    public static Integer updateContactEmails(List<Id> contactIds, String newEmail) {
+        if (contactIds == null || contactIds.isEmpty()) {
+            return 0;
+        }
+        
+        if (!isValidEmail(newEmail)) {
+            throw new AuraHandledException('Invalid email format');
+        }
+        
+        List<Contact> contactsToUpdate = [
+            SELECT Id, Email 
+            FROM Contact 
+            WHERE Id IN :contactIds
+        ];
+        
+        for (Contact c : contactsToUpdate) {
+            c.Email = newEmail;
+        }
+        
+        update contactsToUpdate;
+        return contactsToUpdate.size();
+    }
+    
+    /**
+     * @description Retrieves contacts by account
+     * @param accountId The account ID to search for
+     * @return List of contacts associated with the account
+     */
+    public static List<Contact> getContactsByAccount(Id accountId) {
+        if (accountId == null) {
+            throw new AuraHandledException('Account ID cannot be null');
+        }
+        
+        return [
+            SELECT Id, FirstName, LastName, Email, Phone
+            FROM Contact
+            WHERE AccountId = :accountId
+            ORDER BY LastName, FirstName
+        ];
+    }
+}
