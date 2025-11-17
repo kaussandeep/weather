@@ -22,8 +22,14 @@ jobs:
         id: find
         run: |
           git fetch origin ${{ github.base_ref }}
-          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} | grep "\.cls$" || true)
-          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} | grep "\.cls$" | grep -v "Test\.cls$" || true)
+          if [ -n "$CHANGED" ]; then
+            echo "changed<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGED" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "changed=" >> $GITHUB_OUTPUT
+          fi
 
       - name: Skip if nothing changed
         if: steps.find.outputs.changed == ''
