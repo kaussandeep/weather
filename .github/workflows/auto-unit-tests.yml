@@ -1,12 +1,8 @@
-name: Auto Generate Unit Tests
+name: Auto-generate Apex Unit Tests with Copilot Agent
 
 on:
   pull_request:
-    types: [opened, synchronize]
-    paths:
-      - '**.js'
-      - '!**.test.js'
-      - '!node_modules/**'
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
@@ -15,71 +11,55 @@ permissions:
 jobs:
   generate-tests:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Check for files without tests
-        id: check_tests
+      - name: Detect changed Apex classes
+        id: changes
         run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }}
-          FILES_WITHOUT_TESTS=""
-          for file in $(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD | grep '\.js$' | grep -v '\.test\.js$' | grep -v 'node_modules'); do
-            test_file="${file%.js}.test.js"
-            if [ ! -f "$test_file" ]; then
-              FILES_WITHOUT_TESTS="$FILES_WITHOUT_TESTS $file"
-            fi
-          done
-          
-          echo "Files without tests: $FILES_WITHOUT_TESTS"
-          
-          if [ -n "$FILES_WITHOUT_TESTS" ]; then
-            echo "needs_tests=true" >> $GITHUB_OUTPUT
-            echo "files=$FILES_WITHOUT_TESTS" >> $GITHUB_OUTPUT
-          else
-            echo "needs_tests=false" >> $GITHUB_OUTPUT
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} HEAD -- 'force-app/**/*.cls' | grep -v "Test.cls" || true)
+          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+
+      - name: Stop if no Apex classes changed
+        if: steps.changes.outputs.changed == ''
+        run: echo "No Apex classes changed. Skipping test generation."
+
+      - name: Generate Apex Tests using GitHub Copilot Agent
+        if: steps.changes.outputs.changed != ''
+        uses: github/copilot-actions/agent@latest
+        with:
+          instructions: |
+            You are an expert Salesforce Apex developer.
+            For each modified Apex class, create a corresponding "*Test.cls" file
+            that includes:
+            - 75%+ coverage
+            - bulk data tests
+            - positive + negative flows
+            - runAs() where appropriate
+            - asserts for all expected behavior
+            Place all generated tests inside:
+            force-app/main/default/classes/
+
+            DO NOT modify the existing classes.
+            ONLY generate test classes.
+
+          files: |
+            ${{ steps.changes.outputs.changed }}
+
+      - name: Commit and push generated test classes
+        if: steps.changes.outputs.changed != ''
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add force-app/main/default/classes/*Test.cls || true
+
+          if git diff --cached --quiet; then
+            echo "No test classes generated."
+            exit 0
           fi
 
-      - name: Generate unit tests
-        if: steps.check_tests.outputs.needs_tests == 'true'
-        run: |
-          node .github/scripts/generate-tests.js "${{ steps.check_tests.outputs.files }}"
-
-      - name: Run generated tests
-        if: steps.check_tests.outputs.needs_tests == 'true'
-        run: npm test
-        continue-on-error: true
-
-      - name: Commit and push tests
-        if: steps.check_tests.outputs.needs_tests == 'true'
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add *.test.js **/*.test.js
-          git commit -m "🤖 Auto-generated unit tests for modified files" || exit 0
-          git push
-
-      - name: Comment on PR
-        if: steps.check_tests.outputs.needs_tests == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '🤖 **Unit Tests Auto-Generated**\n\n✅ Unit tests have been automatically generated and added to this PR.\n\nPlease review the generated tests and make any necessary adjustments.\n\n**Files processed:**\n```\n${{ steps.check_tests.outputs.files }}\n```\n\n_This is an automated action._'
-            })
+          git commit -m "Auto-generated Apex test classes using Copilot Agent"
+          git push origin HEAD:${{ github.head_ref }}
