@@ -22,6 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       # -------------------------------------------------------
@@ -55,15 +56,20 @@ jobs:
       # -------------------------------------------------------
       # 4. Generate tests using HuggingFace API
       # -------------------------------------------------------
-      - name: Generate Tests
+      - name: Generate Tests (huggingface)
+        if: steps.find.outputs.changed != ''
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          while read CLASS_FILE; do
+          echo "${{ steps.find.outputs.changed }}" | while IFS= read -r CLASS_FILE; do
             [ -z "$CLASS_FILE" ] && continue
+            [ ! -f "$CLASS_FILE" ] && continue
+            
+            echo "Processing $CLASS_FILE using HuggingFace..."
 
             BASENAME=$(basename "$CLASS_FILE" .cls)
-            TESTFILE="generated-tests/${BASENAME}Test.cls"
-
             CONTENT=$(cat "$CLASS_FILE")
+            TEST_FILE="${CLASS_FILE%.cls}Test.cls"
 
             PROMPT="Generate a complete @isTest Apex test class for the following Apex code. Include setup, positive, negative, and bulk tests:\n\n${CONTENT}"
 
@@ -76,18 +82,29 @@ jobs:
                     \"inputs\": $(echo "$PROMPT" | jq -Rs .),
                     \"parameters\": { \"max_new_tokens\": 500, \"temperature\": 0.1 }
                 }")
+            echo "$RESULT" \
+              | jq -r '.[0].generated_text // empty' \
+              | sed 's/```apex//g' \
+              | sed 's/```//g' \
+              > "$TEST_FILE"
 
-            echo "$RESULT" | jq -r '.[0].generated_text' > "$TESTFILE"
-            echo "Created $TESTFILE"
-          done <<< "${{ steps.find_classes.outputs.CLASSES }}"
+            if [ -s "$TEST_FILE" ]; then
+              echo "✅ Generated: $TEST_FILE"
+            else
+              echo "⚠️ HuggingFace generation failed, file empty"
+              echo "------- API RAW RESPONSE -------"
+              echo "$RESULT"
+              echo "--------------------------------"
+            fi
+          done
 
       # -------------------------------------------------------
       # 6. Commit back to PR
       # -------------------------------------------------------
       - name: Commit Test Files
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
 
           git add .
 
