@@ -35,17 +35,23 @@ jobs:
       # -------------------------------------------------------
       # 3. Detect all Apex classes without tests
       # -------------------------------------------------------
-      - name: Find Apex Classes
-        id: find_classes
+      - name: Find changed Apex classes
+        id: find
         run: |
-          mkdir -p generated-tests
-
-          echo "CLASSES<<EOF" >> $GITHUB_OUTPUT
-          # Get all changed *.cls files in the PR excluding *Test.cls
           git fetch origin ${{ github.base_ref }}
-          git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.cls' | grep -v 'Test\.cls' >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} | grep "\.cls$" | grep -v "Test\.cls$" || true)
+          if [ -n "$CHANGED" ]; then
+            echo "changed<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGED" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "changed=" >> $GITHUB_OUTPUT
+          fi
 
+      - name: Skip if nothing changed
+        if: steps.find.outputs.changed == ''
+        run: echo "No Apex classes changed."
+        
       # -------------------------------------------------------
       # 4. Generate tests using HuggingFace API
       # -------------------------------------------------------
