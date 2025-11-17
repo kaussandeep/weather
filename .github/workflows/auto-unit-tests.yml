@@ -32,10 +32,12 @@ jobs:
         if: steps.find.outputs.changed != ''
         run: |
           for file in ${{ steps.find.outputs.changed }}; do
-            CONTENT=$(cat "$file" | jq -Rs .)
+            # Read file content and properly escape for JSON
+            CONTENT=$(cat "$file")
 
+            # Create JSON payload with proper escaping
             PAYLOAD=$(jq -n \
-              --argjson content "$CONTENT" \
+              --arg content "$CONTENT" \
               '{
                 model: "gpt-4o",
                 messages: [
