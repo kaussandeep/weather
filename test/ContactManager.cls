@@ -25,6 +25,25 @@ public with sharing class ContactManager {
         insert newContact;
         return newContact.Id;
     }
+
+        public static Id createContacts(String firstName, String lastName, String email) {
+        if (String.isBlank(lastName)) {
+            throw new AuraHandledException('Last name is required');
+        }
+        
+        if (String.isNotBlank(email) && !isValidEmail(email)) {
+            throw new AuraHandledException('Invalid email format');
+        }
+        
+        Contact newContact = new Contact(
+            FirstName = firstName,
+            LastName = lastName,
+            Email = email
+        );
+        
+        insert newContact;
+        return newContact.Id;
+    }
     
     /**
      * @description Validates email format
