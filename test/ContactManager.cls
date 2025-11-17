@@ -70,7 +70,7 @@ public with sharing class ContactManager {
     /**
      * @description Retrieves contacts by account
      * @param accountId The account ID to search for
-     * @return List of contacts associated with the account
+     * @return List of contacts associated with the accounts
      */
     public static List<Contact> getContactsByAccount(Id accountId) {
         if (accountId == null) {
