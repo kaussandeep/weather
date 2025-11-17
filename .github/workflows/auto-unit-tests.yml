@@ -14,11 +14,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Find changed Apex classes
         id: find
         run: |
-          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} | grep ".cls" || true)
+          git fetch origin ${{ github.base_ref }}
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} | grep "\.cls$" || true)
           echo "changed=$CHANGED" >> $GITHUB_OUTPUT
 
       - name: Skip if nothing changed
