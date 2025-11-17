@@ -1,0 +1,100 @@
+name: Generate Apex Unit Tests (HF)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  generate-tests:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write      # required to push changes into PR branch
+      pull-requests: write # optional if you want PR comments
+
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
+    steps:
+      # -------------------------------------------------------
+      # 1. Checkout the PR code
+      # -------------------------------------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # -------------------------------------------------------
+      # 2. Install dependencies used to call HuggingFace
+      # -------------------------------------------------------
+      - name: Install curl + jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      # -------------------------------------------------------
+      # 3. Detect all Apex classes without tests
+      # -------------------------------------------------------
+      - name: Find Apex Classes
+        id: find_classes
+        run: |
+          mkdir -p generated-tests
+
+          echo "CLASSES<<EOF" >> $GITHUB_OUTPUT
+          # Lists all *.cls files in force-app but exclude test classes
+          find force-app -name "*.cls" ! -name "*Test.cls" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # -------------------------------------------------------
+      # 4. Generate tests using HuggingFace API
+      # -------------------------------------------------------
+      - name: Generate Tests
+        run: |
+          while read CLASS_FILE; do
+            [ -z "$CLASS_FILE" ] && continue
+
+            BASENAME=$(basename "$CLASS_FILE" .cls)
+            TESTFILE="generated-tests/${BASENAME}Test.cls"
+
+            CONTENT=$(cat "$CLASS_FILE")
+
+            PROMPT="Generate a complete @isTest Apex test class for the following Apex code. Include setup, positive, negative, and bulk tests:\n\n${CONTENT}"
+
+            echo "Generating tests for $CLASS_FILE"
+
+            RESULT=$(curl -s -X POST "https://api-inference.huggingface.co/models/bigcode/starcoder2-7b" \
+                -H "Authorization: Bearer $HF_TOKEN" \
+                -H "Content-Type: application/json" \
+                -d "{
+                    \"inputs\": $(echo "$PROMPT" | jq -Rs .),
+                    \"parameters\": { \"max_new_tokens\": 500, \"temperature\": 0.1 }
+                }")
+
+            echo "$RESULT" | jq -r '.[0].generated_text' > "$TESTFILE"
+            echo "Created $TESTFILE"
+          done <<< "${{ steps.find_classes.outputs.CLASSES }}"
+
+      # -------------------------------------------------------
+      # 5. (Optional) Run prettier or SFDX formatting
+      # -------------------------------------------------------
+      - name: Format Tests (Optional)
+        run: |
+          npm install -g prettier
+          prettier --write "generated-tests/*.cls" || true
+
+      # -------------------------------------------------------
+      # 6. Commit back to PR
+      # -------------------------------------------------------
+      - name: Commit Test Files
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add generated-tests/*.cls || true
+
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto-generate Apex Unit Tests via HuggingFace API"
+            git push
+          else
+            echo "No new files to commit"
+          fi
