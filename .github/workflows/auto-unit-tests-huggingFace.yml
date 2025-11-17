@@ -41,8 +41,9 @@ jobs:
           mkdir -p generated-tests
 
           echo "CLASSES<<EOF" >> $GITHUB_OUTPUT
-          # Lists all *.cls files in force-app but exclude test classes
-          find force-app -name "*.cls" ! -name "*Test.cls" >> $GITHUB_OUTPUT
+          # Get all changed *.cls files in the PR excluding *Test.cls
+          git fetch origin ${{ github.base_ref }}
+          git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.cls' | grep -v 'Test\.cls' >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       # -------------------------------------------------------
