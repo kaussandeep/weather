@@ -28,22 +28,19 @@ jobs:
 
       - name: Generate Apex Tests using GitHub Copilot Agent
         if: steps.changes.outputs.changed != ''
-        uses: github/copilot-actions/agent@latest
+        uses: copilot/agent@v1
         with:
           instructions: |
             You are an expert Salesforce Apex developer.
-            For each modified Apex class, create a corresponding "*Test.cls" file
-            that includes:
-            - 75%+ coverage
-            - bulk data tests
-            - positive + negative flows
-            - runAs() where appropriate
-            - asserts for all expected behavior
-            Place all generated tests inside:
-            force-app/main/default/classes/
+            For each modified Apex class, create a "*Test.cls" file with:
+            - >=75% coverage
+            - bulk data testing
+            - positive/negative flows
+            - test setup data
+            - asserts for all logic branches
+            Put tests into: force-app/main/default/classes/
 
-            DO NOT modify the existing classes.
-            ONLY generate test classes.
+            Only generate test classes.
 
           files: |
             ${{ steps.changes.outputs.changed }}
@@ -61,5 +58,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Auto-generated Apex test classes using Copilot Agent"
+          git commit -m "Auto-generated Apex test classes via Copilot Agent"
           git push origin HEAD:${{ github.head_ref }}
