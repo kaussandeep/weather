@@ -32,29 +32,18 @@ jobs:
         if: steps.find.outputs.changed != ''
         run: |
           for file in ${{ steps.find.outputs.changed }}; do
-            # Read file content and properly escape for JSON
-            CONTENT=$(cat "$file")
-
-            # Create JSON payload with proper escaping
-            PAYLOAD=$(jq -n \
-              --arg content "$CONTENT" \
-              '{
-                model: "gpt-4o",
-                messages: [
-                  { role: "system", content: "Generate an Apex test class with >90% coverage and best practices. Return ONLY the Apex code without markdown formatting." },
-                  { role: "user", content: $content }
-                ]
-              }')
-
-            RESPONSE=$(curl -s \
-              -X POST "https://api.githubcopilot.com/chat/completions" \
-              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              -d "$PAYLOAD")
-
+            echo "Processing $file..."
+            
+            PAYLOAD=$(jq -n --arg content "$(cat "$file")" '{model: "gpt-4o", messages: [{role: "system", content: "Generate an Apex test class with >90% coverage and best practices. Return ONLY the Apex code without markdown formatting."}, {role: "user", content: $content}]}')
+            
+            echo "Calling Copilot API..."
+            RESPONSE=$(curl -s -X POST "https://api.githubcopilot.com/chat/completions" -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/json" -d "$PAYLOAD")
+            
+            echo "Response received: ${RESPONSE:0:200}"
             RESULT=$(echo "$RESPONSE" | jq -r '.choices[0].message.content')
-
+            
             TEST_FILE="${file%.cls}Test.cls"
+            echo "Writing test to $TEST_FILE"
             echo "$RESULT" > "$TEST_FILE"
           done
 
