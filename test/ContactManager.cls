@@ -1,7 +1,7 @@
 public with sharing class ContactManager {
     
     /**
-     * @description Creates a new contact with validation
+     * @description Creates a new contact with validations
      * @param firstName First name of the contact
      * @param lastName Last name of the contact
      * @param email Email address of the contact
