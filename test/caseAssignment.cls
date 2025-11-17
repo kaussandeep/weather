@@ -1,5 +1,6 @@
 public with sharing class CaseAssignmentService {
-
+    // Updated to test GitHub Actions workflow
+    
     public static Id assignCaseToQueue(Case newCase) {
         if (newCase == null) {
             throw new AuraHandledException('Case cannot be null');
