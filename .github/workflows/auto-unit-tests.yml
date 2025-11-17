@@ -28,23 +28,63 @@ jobs:
         if: steps.find.outputs.changed == ''
         run: echo "No Apex classes changed."
 
-      - name: Generate tests using GitHub Copilot API
+      - name: Setup Node.js
         if: steps.find.outputs.changed != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Generate tests using GitHub Copilot
+        if: steps.find.outputs.changed != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Install GitHub CLI if not available
+          which gh || (curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && \
+          sudo apt update && sudo apt install gh -y)
+          
           for file in ${{ steps.find.outputs.changed }}; do
-            echo "Processing $file..."
-            
-            PAYLOAD=$(jq -n --arg content "$(cat "$file")" '{model: "gpt-4o", messages: [{role: "system", content: "Generate an Apex test class with >90% coverage and best practices. Return ONLY the Apex code without markdown formatting."}, {role: "user", content: $content}]}')
-            
-            echo "Calling Copilot API..."
-            RESPONSE=$(curl -s -X POST "https://api.githubcopilot.com/chat/completions" -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/json" -d "$PAYLOAD")
-            
-            echo "Response received: ${RESPONSE:0:200}"
-            RESULT=$(echo "$RESPONSE" | jq -r '.choices[0].message.content')
-            
-            TEST_FILE="${file%.cls}Test.cls"
-            echo "Writing test to $TEST_FILE"
-            echo "$RESULT" > "$TEST_FILE"
+            if [ -f "$file" ]; then
+              echo "Processing $file with GitHub Copilot..."
+              
+              # Read the file content
+              CONTENT=$(cat "$file")
+              TEST_FILE="${file%.cls}Test.cls"
+              
+              # Use GitHub API to call Copilot
+              PROMPT="You are an expert Salesforce Apex developer. Generate a comprehensive test class for the following Apex class with >90% code coverage. Include @isTest annotation, @TestSetup method, individual test methods for each public/global method, exception handling tests, and bulk operation tests. Follow Salesforce best practices. Return ONLY valid Apex code without markdown formatting:\n\n\`\`\`apex\n${CONTENT}\n\`\`\`"
+              
+              # Call GitHub Models API (using gpt-4o)
+              RESPONSE=$(curl -s -X POST https://models.inference.ai.azure.com/chat/completions \
+                -H "Content-Type: application/json" \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -d "{
+                  \"messages\": [
+                    {
+                      \"role\": \"system\",
+                      \"content\": \"You are an expert Salesforce Apex test generator.\"
+                    },
+                    {
+                      \"role\": \"user\",
+                      \"content\": $(echo "$PROMPT" | jq -Rs .)
+                    }
+                  ],
+                  \"model\": \"gpt-4o\",
+                  \"temperature\": 0.3,
+                  \"max_tokens\": 4000
+                }")
+              
+              # Extract the generated code
+              echo "$RESPONSE" | jq -r '.choices[0].message.content' | sed 's/```apex//g' | sed 's/```//g' > "$TEST_FILE"
+              
+              if [ -s "$TEST_FILE" ]; then
+                echo "✅ Successfully generated: $TEST_FILE"
+              else
+                echo "⚠️  Copilot API failed, using fallback template generator"
+                node .github/scripts/generate-apex-tests.js "$file"
+              fi
+            fi
           done
 
       - name: Commit generated tests
