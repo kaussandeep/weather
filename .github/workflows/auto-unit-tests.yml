@@ -32,14 +32,14 @@ jobs:
         if: steps.find.outputs.changed != ''
         run: |
           for file in ${{ steps.find.outputs.changed }}; do
-            CONTENT=$(cat "$file")
+            CONTENT=$(cat "$file" | jq -Rs .)
 
             PAYLOAD=$(jq -n \
-              --arg content "$CONTENT" \
-              '{ 
-                model: "gpt-4.1",
+              --argjson content "$CONTENT" \
+              '{
+                model: "gpt-4o",
                 messages: [
-                  { role: "system", content: "Generate an Apex test class with >90% coverage and best practices." },
+                  { role: "system", content: "Generate an Apex test class with >90% coverage and best practices. Return ONLY the Apex code without markdown formatting." },
                   { role: "user", content: $content }
                 ]
               }')
