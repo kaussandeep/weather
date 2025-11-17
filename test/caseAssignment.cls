@@ -1,5 +1,5 @@
 public with sharing class CaseAssignmentService {
-    // Updated to test GitHub Actions workflow - v2
+    // Updated to test GitHub Actions workflow - v3
     
     /**
      * @description Assigns a case to appropriate queue based on priority
@@ -28,6 +28,26 @@ public with sharing class CaseAssignmentService {
 
         return newCase.OwnerId;
     }
+
+            public static List<Id> assignCasesToQueue12(List<Case> cases) {
+        List<Id> assignedIds = new List<Id>();
+        
+        if (cases == null || cases.isEmpty()) {
+            return assignedIds;
+        }
+        
+        for (Case c : cases) {
+            try {
+                Id assignedId = assignCaseToQueue(c);
+                assignedIds.add(assignedId);
+            } catch (Exception e) {
+                System.debug('Error assigning case: ' + e.getMessage());
+            }
+        }
+        
+        return assignedIds;
+    }
+
     
     /**
      * @description Assigns multiple cases to queues in bulk
