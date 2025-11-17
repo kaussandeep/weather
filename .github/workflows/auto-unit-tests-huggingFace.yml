@@ -51,7 +51,7 @@ jobs:
       - name: Skip if nothing changed
         if: steps.find.outputs.changed == ''
         run: echo "No Apex classes changed."
-        
+
       # -------------------------------------------------------
       # 4. Generate tests using HuggingFace API
       # -------------------------------------------------------
@@ -82,14 +82,6 @@ jobs:
           done <<< "${{ steps.find_classes.outputs.CLASSES }}"
 
       # -------------------------------------------------------
-      # 5. (Optional) Run prettier or SFDX formatting
-      # -------------------------------------------------------
-      - name: Format Tests (Optional)
-        run: |
-          npm install -g prettier
-          prettier --write "generated-tests/*.cls" || true
-
-      # -------------------------------------------------------
       # 6. Commit back to PR
       # -------------------------------------------------------
       - name: Commit Test Files
@@ -97,11 +89,11 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add generated-tests/*.cls || true
+          git add .
 
           if ! git diff --cached --quiet; then
             git commit -m "Auto-generate Apex Unit Tests via HuggingFace API"
-            git push
+            git push origin HEAD:${{ github.head_ref }}
           else
             echo "No new files to commit"
           fi
