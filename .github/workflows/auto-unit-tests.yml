@@ -15,6 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: Find changed Apex classes
@@ -88,12 +89,14 @@ jobs:
           done
 
       - name: Commit generated tests
+        if: steps.find.outputs.changed != ''
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add .
-          if git commit -m "Auto-generate Apex test classes"; then
-            git push
-          else
+          if git diff --cached --quiet; then
             echo "No changes to commit."
+          else
+            git commit -m "Auto-generate Apex test classes"
+            git push origin HEAD:${{ github.head_ref }}
           fi
