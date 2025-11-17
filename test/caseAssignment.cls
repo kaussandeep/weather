@@ -1,5 +1,5 @@
 public with sharing class CaseAssignmentService {
-    // Updated to test GitHub Actions workflow - v2
+    // Updated to test GitHub Actions workflow - v3
     
     /**
      * @description Assigns a case to appropriate queue based on priority
@@ -47,7 +47,7 @@ public with sharing class CaseAssignmentService {
         
         return assignedIds;
     }
-    
+
     
     /**
      * @description Assigns multiple cases to queues in bulk
