@@ -75,7 +75,7 @@ jobs:
 
             echo "Generating tests for $CLASS_FILE"
 
-            RESULT=$(curl -s -X POST "https://api-inference.huggingface.co/models/bigcode/starcoder2-7b" \
+            RESULT=$(curl -s -X POST "https://router.huggingface.co/hf-inference/models/bigcode/starcoder2-7b" \
                 -H "Authorization: Bearer $HF_TOKEN" \
                 -H "Content-Type: application/json" \
                 -d "{
