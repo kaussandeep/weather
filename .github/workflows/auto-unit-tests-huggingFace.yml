@@ -81,7 +81,9 @@ jobs:
       # ------------------------
       - name: Generate Tests with Local LLM
         if: steps.find.outputs.changed && steps.find.outputs.changed != ''
+        id: generate-tests
         run: |
+          FAILURE=false
           for file in ${{ steps.find.outputs.changed }}; do
             [ -z "$file" ] && continue
 
@@ -121,12 +123,14 @@ jobs:
 
             if [ ! -s "$TEST_FILE" ]; then
               echo "❌ Failed to generate test class for $file"
-              echo "::set-output name=failure::true"
+              FAILURE=true
             fi
           done
 
+          echo "failure=$FAILURE" >> $GITHUB_OUTPUT
+
       # ------------------------
-      # Commit changes back to PR
+      # Commit generated tests
       # ------------------------
       - name: Commit generated tests
         if: steps.find.outputs.changed && steps.find.outputs.changed != ''
