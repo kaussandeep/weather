@@ -33,20 +33,29 @@ jobs:
           if [[ -z "$CHANGED" ]]; then
             echo "changed=" >> $GITHUB_OUTPUT
           else
-            echo "changed<<EOF" >> $GITHUB_OUTPUT
-            echo "$CHANGED" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
+            # Join files into a single space-separated string for easier looping
+            echo "changed=$(echo $CHANGED | tr '\n' ' ')" >> $GITHUB_OUTPUT
           fi
 
+      # ------------------------
+      # Debug changed files
+      # ------------------------
+      - name: Debug changed files
+        run: |
+          echo "Changed files: ${{ steps.find.outputs.changed }}"
+
+      # ------------------------
+      # Skip if nothing changed
+      # ------------------------
       - name: Skip if nothing changed
         if: steps.find.outputs.changed == ''
-        run: echo "No Apex classes changed."
+        run: echo "✅ No Apex classes changed."
 
       # ------------------------
       # Install Ollama
       # ------------------------
       - name: Install Ollama
-        if: steps.find.outputs.changed != ''
+        if: steps.find.outputs.changed && steps.find.outputs.changed != ''
         run: |
           curl -fsSL https://ollama.com/install.sh | sh
           sudo systemctl restart ollama
@@ -56,7 +65,7 @@ jobs:
       # Pull the local model
       # ------------------------
       - name: Pull DeepSeek Coder model
-        if: steps.find.outputs.changed != ''
+        if: steps.find.outputs.changed && steps.find.outputs.changed != ''
         run: |
           ollama pull deepseek-coder:6.7b
 
@@ -64,9 +73,9 @@ jobs:
       # Generate Apex Test Classes
       # ------------------------
       - name: Generate Tests with Local LLM
-        if: steps.find.outputs.changed != ''
+        if: steps.find.outputs.changed && steps.find.outputs.changed != ''
         run: |
-          echo "${{ steps.find.outputs.changed }}" | while IFS= read -r file; do
+          for file in ${{ steps.find.outputs.changed }}; do
             [ -z "$file" ] && continue
 
             echo "Processing $file using Local Ollama..."
@@ -89,9 +98,11 @@ jobs:
               \"prompt\": \"${PROMPT}\"
             }")
 
-            echo "$RESPONSE" | jq -r '.response' > "$TEST_FILE"
+            # Extract response safely
+            TEST_CODE=$(echo "$RESPONSE" | jq -r '.response')
 
-            if [ -s "$TEST_FILE" ]; then
+            if [ -n "$TEST_CODE" ] && [ "$TEST_CODE" != "null" ]; then
+              echo "$TEST_CODE" > "$TEST_FILE"
               echo "✅ Created: $TEST_FILE"
             else
               echo "❌ Failed to generate test class for $file"
@@ -102,7 +113,7 @@ jobs:
       # Commit changes back to PR
       # ------------------------
       - name: Commit generated tests
-        if: steps.find.outputs.changed != ''
+        if: steps.find.outputs.changed && steps.find.outputs.changed != ''
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
@@ -113,4 +124,3 @@ jobs:
           else
             git commit -m "Auto-generate Apex test classes (via Ollama)"
             git push origin HEAD:${{ github.head_ref }}
-          fi
