@@ -1,113 +1,116 @@
-name: Generate Apex Unit Tests (HF)
+name: Generate Apex Tests (Local AI via Ollama)
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize]
 
 jobs:
   generate-tests:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write      # required to push changes into PR branch
-      pull-requests: write # optional if you want PR comments
-
-    env:
-      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      contents: write
+      pull-requests: write
 
     steps:
-      # -------------------------------------------------------
-      # 1. Checkout the PR code
-      # -------------------------------------------------------
-      - name: Checkout
-        uses: actions/checkout@v4
+      # ------------------------
+      # Checkout the PR branch
+      # ------------------------
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
-      # -------------------------------------------------------
-      # 2. Install dependencies used to call HuggingFace
-      # -------------------------------------------------------
-      - name: Install curl + jq
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq
-
-      # -------------------------------------------------------
-      # 3. Detect all Apex classes without tests
-      # -------------------------------------------------------
+      # ------------------------
+      # Find changed Apex classes
+      # ------------------------
       - name: Find changed Apex classes
         id: find
         run: |
           git fetch origin ${{ github.base_ref }}
           CHANGED=$(git diff --name-only origin/${{ github.base_ref }} | grep "\.cls$" | grep -v "Test\.cls$" || true)
-          if [ -n "$CHANGED" ]; then
+
+          if [[ -z "$CHANGED" ]]; then
+            echo "changed=" >> $GITHUB_OUTPUT
+          else
             echo "changed<<EOF" >> $GITHUB_OUTPUT
             echo "$CHANGED" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "changed=" >> $GITHUB_OUTPUT
           fi
 
       - name: Skip if nothing changed
         if: steps.find.outputs.changed == ''
         run: echo "No Apex classes changed."
 
-      # -------------------------------------------------------
-      # 4. Generate tests using HuggingFace API
-      # -------------------------------------------------------
-      - name: Generate Tests (huggingface)
+      # ------------------------
+      # Install Ollama
+      # ------------------------
+      - name: Install Ollama
         if: steps.find.outputs.changed != ''
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          echo "${{ steps.find.outputs.changed }}" | while IFS= read -r CLASS_FILE; do
-            [ -z "$CLASS_FILE" ] && continue
-            [ ! -f "$CLASS_FILE" ] && continue
-            
-            echo "Processing $CLASS_FILE using HuggingFace..."
+          curl -fsSL https://ollama.com/install.sh | sh
+          sudo systemctl restart ollama
+          sleep 5
 
-            BASENAME=$(basename "$CLASS_FILE" .cls)
-            CONTENT=$(cat "$CLASS_FILE")
-            TEST_FILE="${CLASS_FILE%.cls}Test.cls"
+      # ------------------------
+      # Pull the local model
+      # ------------------------
+      - name: Pull DeepSeek Coder model
+        if: steps.find.outputs.changed != ''
+        run: |
+          ollama pull deepseek-coder:6.7b
 
-            PROMPT="Generate a complete @isTest Apex test class for the following Apex code. Include setup, positive, negative, and bulk tests:\n\n${CONTENT}"
+      # ------------------------
+      # Generate Apex Test Classes
+      # ------------------------
+      - name: Generate Tests with Local LLM
+        if: steps.find.outputs.changed != ''
+        run: |
+          echo "${{ steps.find.outputs.changed }}" | while IFS= read -r file; do
+            [ -z "$file" ] && continue
 
-            echo "Generating tests for $CLASS_FILE"
+            echo "Processing $file using Local Ollama..."
+            CONTENT=$(cat "$file")
+            TEST_FILE="${file%.cls}Test.cls"
 
-            RESULT=$(curl -s -X POST "https://router.huggingface.co/hf-inference/models/microsoft/Phi-3-mini-4k-instruct" \
-                -H "Authorization: Bearer $HF_TOKEN" \
-                -H "Content-Type: application/json" \
-                -d "{
-                    \"inputs\": $(echo "$PROMPT" | jq -Rs .),
-                    \"parameters\": { \"max_new_tokens\": 500, \"temperature\": 0.1 }
-                }")
-            echo "$RESULT" \
-              | jq -r '.generated_text' > "$TEST_FILE"
+            PROMPT="You are an expert Salesforce Apex developer. Generate an @isTest Apex test class with >90% coverage for this Apex class. Include:
+            - @isTest
+            - @TestSetup
+            - positive tests
+            - negative tests
+            - bulk tests
+            - exception tests
+
+            Apex class:
+            ${CONTENT}"
+
+            RESPONSE=$(curl -s http://localhost:11434/api/generate -d "{
+              \"model\": \"deepseek-coder:6.7b\",
+              \"prompt\": \"${PROMPT}\"
+            }")
+
+            echo "$RESPONSE" | jq -r '.response' > "$TEST_FILE"
 
             if [ -s "$TEST_FILE" ]; then
-              echo "✅ Generated: $TEST_FILE"
+              echo "✅ Created: $TEST_FILE"
             else
-              echo "⚠️ HuggingFace generation failed, file empty"
-              echo "------- API RAW RESPONSE -------"
-              echo "$RESULT"
-              echo "--------------------------------"
+              echo "❌ Failed to generate test class for $file"
             fi
           done
 
-      # -------------------------------------------------------
-      # 6. Commit back to PR
-      # -------------------------------------------------------
-      - name: Commit Test Files
+      # ------------------------
+      # Commit changes back to PR
+      # ------------------------
+      - name: Commit generated tests
+        if: steps.find.outputs.changed != ''
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
 
           git add .
-
-          if ! git diff --cached --quiet; then
-            git commit -m "Auto-generate Apex Unit Tests via HuggingFace API"
-            git push origin HEAD:${{ github.head_ref }}
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
           else
-            echo "No new files to commit"
+            git commit -m "Auto-generate Apex test classes (via Ollama)"
+            git push origin HEAD:${{ github.head_ref }}
           fi
